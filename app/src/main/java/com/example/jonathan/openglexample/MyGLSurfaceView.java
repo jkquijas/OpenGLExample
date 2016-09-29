@@ -1,40 +1,111 @@
 package com.example.jonathan.openglexample;
 
+import android.app.Activity;
 import android.content.Context;
+import android.graphics.PixelFormat;
 import android.opengl.GLSurfaceView;
+import android.util.DisplayMetrics;
+import android.util.Log;
+import android.view.GestureDetector;
 import android.view.MotionEvent;
+import android.view.ScaleGestureDetector;
 import android.view.View;
-import android.widget.Toast;
 
 
 /**
  * Created by jonathan on 9/7/16.
  */
-public class MyGLSurfaceView extends GLSurfaceView {
+public class MyGLSurfaceView extends GLSurfaceView{
 
-    private MyGLRenderer mRenderer;
+    private final MyGLRenderer mRenderer;
+    private float mScaleFactor = 1.0f;
+    private ScaleGestureDetector mScaleDetector;
+    private GestureDetector mGestureDetector;
+
+    private float mPreviousX;
+    private float mPreviousY;
+    private float mDensity;
+
+    final DisplayMetrics displayMetrics = new DisplayMetrics();
+
 
     public MyGLSurfaceView(Context context) {
         super(context);
-
-        // Create an OpenGL ES 2.0 context
         setEGLContextClientVersion(2);
+        setEGLConfigChooser(8,8,8,8,16,0);
+        getHolder().setFormat(PixelFormat.RGBA_8888);
 
-        mRenderer = new MyGLRenderer();
-
-        // Set the Renderer for drawing on the GLSurfaceView
+        mRenderer = new MyGLRenderer(context);
         setRenderer(mRenderer);
 
-        // Render the view only when there is a change in the drawing data
-        setRenderMode(GLSurfaceView.RENDERMODE_WHEN_DIRTY);
+        mScaleDetector = new ScaleGestureDetector(context, new ScaleListener());
+        mGestureDetector = new GestureDetector(context, new GestureListener());
+        setRenderMode(GLSurfaceView.RENDERMODE_CONTINUOUSLY);
 
-        setOnTouchListener(new OnTouchListener() {
-            @Override
-            public boolean onTouch(View view, MotionEvent motionEvent) {
-                Toast.makeText(getContext(),"Touched Screen!",Toast.LENGTH_SHORT).show();
-                return false;
+        ((Activity)context).getWindowManager().getDefaultDisplay().getMetrics(displayMetrics);
+        mDensity = displayMetrics.density;
+
+    }
+
+    public boolean onTouchEvent(MotionEvent ev) {
+        float x = ev.getX();
+        float y = ev.getY();
+
+        if (ev.getAction() == MotionEvent.ACTION_MOVE)
+        {
+            if (mRenderer != null)
+            {
+                float deltaX = (x - mPreviousX) / mDensity / 2f;
+                float deltaY = (y - mPreviousY) / mDensity / 2f;
+
+                mRenderer.addDeltaX(deltaX);
+                mRenderer.addDeltaY(-deltaY);
             }
-        });
+        }
+
+        mPreviousX = x;
+        mPreviousY = y;
+
+        mScaleDetector.onTouchEvent(ev);
+        mGestureDetector.onTouchEvent(ev);
+        return true;
+    }
+
+    public void onResume(){
+        mRenderer.start();
+    }
+    public void onPause(){
+        mRenderer.stop();
+        Log.d("MyGLSurfaceView", "Stopped renderer.");
+    }
+
+    private class ScaleListener
+            extends ScaleGestureDetector.SimpleOnScaleGestureListener {
+        @Override
+        public boolean onScale(ScaleGestureDetector detector) {
+            mScaleFactor *= detector.getScaleFactor();
+
+            // Don't let the object get too small or too large.
+            mScaleFactor = Math.max(0.1f, Math.min(mScaleFactor, 5.0f));
+            mRenderer.updateScaleMatrix(mScaleFactor);
+            return true;
+        }
+    }
+
+    private class GestureListener extends GestureDetector.SimpleOnGestureListener {
+        public void onLongPress(MotionEvent e) {
+            mRenderer.toggleLock();
+        }
+        @Override
+        public boolean onScroll(MotionEvent e1, MotionEvent e2,
+                                float distanceX, float distanceY) {
+
+            if(e2.getPointerCount() != 2)
+                return false;
+
+            Log.d("onScroll", "distance = "+distanceY);
+            return true;
+        }
     }
 
 }
