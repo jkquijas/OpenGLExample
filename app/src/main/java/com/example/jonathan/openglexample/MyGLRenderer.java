@@ -23,7 +23,6 @@ public class MyGLRenderer implements GLSurfaceView.Renderer, SensorEventListener
     private boolean locked;
     /** Store the accumulated rotation. */
     private final float[] mAccumulatedRotation = new float[16];
-
     /** Store the current rotation. */
     private final float[] mCurrentRotation = new float[16];
 
@@ -44,6 +43,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer, SensorEventListener
 
     private float [] mScaleMatrix = new float[16];
 
+    /** Light arrays **/
     //  Used to hold the current position of the light in world space (after transformation via model matrix)
     private final float[] mLightPosInWorldSpace = new float[4];
     //  Used to hold the transformed position of the light in eye space (after transformation via modelview matrix)
@@ -110,7 +110,7 @@ public class MyGLRenderer implements GLSurfaceView.Renderer, SensorEventListener
         final float bottom = -1.0f;
         final float top = 1.0f;
         final float near = 2.0f;
-        final float far = 6.0f;
+        final float far = 8.0f;
 
         Matrix.frustumM(mProjectionMatrix, 0, left, right, bottom, top, near, far);
     }
@@ -173,8 +173,9 @@ public class MyGLRenderer implements GLSurfaceView.Renderer, SensorEventListener
         //  Draw light source
         float[]scratchLight = new float[16];
         // Pass in the transformation matrix.
-        Matrix.multiplyMM(scratchLight, 0, mViewMatrix, 0, mLightModelMatrix, 0);
-        Matrix.multiplyMM(scratchLight, 0, mProjectionMatrix, 0, scratchLight, 0);
+        // NEW CODE
+        //Matrix.multiplyMM(scratchLight, 0, mViewMatrix, 0, mLightModelMatrix, 0);
+        //Matrix.multiplyMM(scratchLight, 0, mProjectionMatrix, 0, scratchLight, 0);
 
         mCube.drawLight(scratchLight, mLightPosInEyeSpace);
 
@@ -209,7 +210,9 @@ public class MyGLRenderer implements GLSurfaceView.Renderer, SensorEventListener
     }
 
     @Override
-    public void onAccuracyChanged(Sensor sensor, int i){}
+    public void onAccuracyChanged(Sensor sensor, int i){
+
+    }
 
     public void updateScaleMatrix(float scale){
         Matrix.setIdentityM(mScaleMatrix,0);
@@ -222,6 +225,9 @@ public class MyGLRenderer implements GLSurfaceView.Renderer, SensorEventListener
     }
     public void addDeltaY(float deltaY){
         mDeltaY += deltaY;
+    }
+    public void moveLight(float displacement){
+        mLightPosInModelSpace[2] += displacement;
     }
     public void toggleLock(){
         locked = (locked)?false:true;

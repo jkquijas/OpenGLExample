@@ -103,7 +103,7 @@ public class MyGLSurfaceView extends GLSurfaceView{
             if(e2.getPointerCount() != 2)
                 return false;
 
-            Log.d("onScroll", "distance = "+distanceY);
+            mRenderer.moveLight(distanceY/100.0f);
             return true;
         }
     }

@@ -54,7 +54,7 @@ public class Cube {
             // pointing in the same direction then it will get max illumination.
             + "   float diffuse = max(dot(modelViewNormal, lightVector), 0.1);       \n"
             // Attenuate the light based on distance.
-            + "   diffuse = diffuse * (1.0 / (1.0 + (0.25 * distance * distance))) + .3;  \n"
+            + "   diffuse = diffuse * (1.0 / (1.0 + (0.25 * distance * distance))) + .4;  \n"
             // Multiply the color by the illumination level. It will be interpolated across the triangle.
             + "   v_Color = a_Color * diffuse;                                       \n"
             + " v_Color.a = 1.0;\n"
